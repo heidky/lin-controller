@@ -1,0 +1,173 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lin Configurator</title>
+
+  <style>
+    body {
+      background-color: #333;
+      color: white;
+    }
+  </style>
+
+  <script>
+    let configChar = null
+    let configUpdateChar = null
+    let config = {}
+    let connected = false;
+
+
+    async function connect() {
+      const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['46300001-0023-4bd4-bbd5-a6920e4c5653'] }] })
+      connected = true;
+
+      device.addEventListener('gattserverdisconnected', () => {
+        console.log("Disconnected!")
+        connected = false;
+        updateUI_controls()
+      });
+
+      const server = await device.gatt.connect();
+      const service = await server.getPrimaryService('46300001-0023-4bd4-bbd5-a6920e4c5653');
+      configChar = await service.getCharacteristic('46300005-0023-4bd4-bbd5-a6920e4c5653');
+      configUpdateChar = await service.getCharacteristic('46300006-0023-4bd4-bbd5-a6920e4c5653');
+
+      // pull the value from the device
+      await configChar.readValue()
+      await configChar.startNotifications()
+
+      // update ui
+      remoteConfigChanged()
+      configChar.addEventListener('characteristicvaluechanged', () => remoteConfigChanged())
+    }
+
+
+    function remoteConfigChanged() {
+      const decoder = new TextDecoder()
+      const data = decoder.decode(configChar.value)
+      data.split('|').map(entry => entry.split(':')).forEach(([key, value]) => config[key] = parseFloat(value));
+
+      console.log(config)
+      updateUI_inputs();
+      updateUI_controls();
+    }
+
+
+    async function sendData(data) {
+      const encoder = new TextEncoder()
+      const buffer = encoder.encode(data)
+      await configUpdateChar.writeValue(buffer)
+    }
+
+
+    async function sendModifiedConfig() {
+      const modified = getModifiedConfig()
+
+      for([key, value] of Object.entries(modified)) {
+        const data = `${key}:${value}`
+        await sendData(data)
+      }
+    }
+
+
+    function updateUI_controls() {
+      const sendBtn = document.querySelector("#btn-send")
+      const controls = document.querySelector("#controls")
+      const connectBtn = document.querySelector("#connect-btn")
+
+      if(Object.keys(getModifiedConfig()).length > 0) 
+        sendBtn.removeAttribute('disabled')
+      else
+        sendBtn.setAttribute('disabled', 'true')
+
+      if(connected) {
+        controls.style["visibility"] = "visible"
+        connectBtn.style["visibility"] = "hidden"
+      }
+      else {
+        controls.style["visibility"] = "hidden"
+        connectBtn.style["visibility"] = "visible"
+      }
+    }
+
+
+    function updateUI_inputs() {
+      if(connected) {
+        Object.entries(config).forEach(([key, value]) => document.querySelector(`input#${key}`).value = value)
+      }
+    }
+
+
+    function getModifiedConfig() {
+      const modified = {}
+
+      Object.keys(config).forEach(key => {
+        const inputValue = document.querySelector(`input#${key}`).value
+        if(inputValue != config[key]) modified[key] = inputValue
+      })
+
+      return modified
+    }
+
+    function valueChanged() {
+      updateUI_controls()
+    }
+
+  
+  </script>
+</head>
+<body>
+  <button id="connect-btn" onclick="connect()">Connect</button>
+
+  <div id="controls" style="visibility:hidden;">
+  <table id="config-table">
+    <th>
+      <td>Kp</td>
+      <td>Ki</td>
+      <td>Kd</td>
+    </th>
+
+    <tr>
+      <td>PID Velocity</td>
+      <td><input id="Vp" onchange="valueChanged()"/></td>
+      <td><input id="Vi" onchange="valueChanged()"/></td>
+      <td><input id="Vd" onchange="valueChanged()"/></td>
+    </tr>
+
+    <tr>
+      <td>PID Position</td>
+      <td><input id="Pp" onchange="valueChanged()"/></td>
+      <td><input id="Pi" onchange="valueChanged()"/></td>
+      <td><input id="Pd" onchange="valueChanged()"/></td>
+    </tr>
+  </table>
+
+  <table>
+    <tr>
+      <td>Throttle Smoothing:</td> 
+      <td><input id="Ta" onchange="valueChanged()"/></td>
+    </tr>
+    <tr>
+      <td>Speed:</td> 
+      <td><input id="S" onchange="valueChanged()"/></td>
+    </tr>
+    <tr>
+      <td>Force:</td> 
+      <td><input id="F" onchange="valueChanged()"/></td>
+    </tr>
+  </table>
+
+  <div style="display:flex;flex-direction:row;">
+    <button id="btn-reset" onclick="updateUI_inputs();updateUI_controls()">Reset</button>
+    <button id="btn-send" onclick="sendModifiedConfig()" disabled="true">Send</button>
+  </div>
+
+  <div>
+    <button onclick="sendModifiedConfig();sendData('P:-1')">Forward</button>
+    <button onclick="sendModifiedConfig();sendData('P:+1')">Backward</button>
+  </div>
+  </div>
+
+</body>
+</html>
