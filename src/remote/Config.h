@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <ArduinoBLE.h>
-#include "MotorController.h"
+#include "../motion/MotorController.h"
 
 
 class Configurator

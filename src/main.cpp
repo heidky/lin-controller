@@ -1,11 +1,13 @@
 
 #include <Arduino.h>
 #include <math.h>
-#include "HBridge.h"
 #include "AS5600.h"
-#include "MotorController.h"
-#include "LVS.h"
-#include "Config.h"
+
+#include "motion/HBridge.h"
+#include "motion/MotorController.h"
+#include "remote/LVS.h"
+#include "remote/Config.h"
+
 
 #define DRUM_RADIUS_CM    1
 #define ROD_MIN_CM        5
@@ -17,6 +19,7 @@
 
 #define SAFE_LOOP_MS 6
 // #define PLOT_DEBUG
+
 
 const float cm_per_rev = 2 * PI * DRUM_RADIUS_CM;
 const float rev_per_cm = 1 / cm_per_rev;
