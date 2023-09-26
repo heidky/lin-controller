@@ -10,6 +10,7 @@
 #define DRUM_RADIUS_CM    1
 #define ROD_MIN_CM        5
 #define ROD_MAX_CM        50
+#define MARGIN_CM         0.25
 
 #define CALIBRATION_SPEED 1
 #define CALIBRATION_FORCE 0.4
@@ -18,7 +19,10 @@
 // #define PLOT_DEBUG
 
 const float cm_per_rev = 2 * PI * DRUM_RADIUS_CM;
-const float calibration_max_rev = ROD_MAX_CM * 1.25 / cm_per_rev;
+const float rev_per_cm = 1 / cm_per_rev;
+
+const float calibration_max_rev = ROD_MAX_CM * 1.25 * rev_per_cm;
+const float margin_rev = MARGIN_CM * rev_per_cm;
 
 
 AS5600 encoder;   //  use default Wire
@@ -52,13 +56,36 @@ void checkSlowLoopTime();
 void checkMotorDirectionError();
 
 
+
 State state = State::Boot;
 bool calibrated = false;
 float max_position = 0;
+float min_position = 0;
 float rod_length = 0;
 
 long last_loop_millis = -1;
 int direction_error_counter = 0;
+
+
+
+
+void moveToPerc(float perc)
+{
+  if(perc > 1) perc = 1.0;
+  if(perc < 0) perc = 0.0;
+
+  controller.moveTo((max_position - min_position) * perc + min_position);
+}
+
+
+void moveToCm(float cm)
+{
+  const float travel_lenght = max_position - min_position;
+  if(cm < 0) cm = 0;
+  if(cm > travel_lenght) cm = travel_lenght;
+
+  moveToPerc(cm / travel_lenght);
+}
 
 
 void setup()
@@ -167,8 +194,11 @@ void CalibrationMax_update()
   if(controller.isStuck())
   {
     controller.cancelMove();
-    max_position = controller.getCurrentPosition();
-    rod_length = max_position * cm_per_rev;
+
+    const float end_travel = controller.getCurrentPosition();
+    max_position = end_travel - margin_rev;
+    min_position = margin_rev;
+    rod_length = end_travel * cm_per_rev;
 
     if(rod_length > ROD_MIN_CM && rod_length < ROD_MAX_CM)
     {
@@ -193,8 +223,8 @@ void Operative_enter()
 {
   state = State::Operative;
   controller.setForce(1);
-  controller.setSpeed(6); 
-  controller.moveTo(max_position * 0.1);
+  controller.setSpeed(20); 
+  moveToPerc(0);
 
   lvs.begin();
   lvs.start();
@@ -209,21 +239,23 @@ void Operative_update()
     LVSCommand cmd = lvs.getCommand();
     if(cmd == LVSCommand::Thrust || cmd == LVSCommand::Vibe)
     {
-      float min = max_position * 0.8;
-      float max = max_position * 0.2;
-      float pos = min + (1 - lvs.getValue()) * (max - min);
-      controller.moveTo(pos);
+      float value = 1 - lvs.getValue();
+      moveToPerc(value);
     }
   }
 
+  if(!controller.isTraveling()) 
+  {
+    if (controller.getCurrentPosition() > 0.5)
+      moveToPerc(0);
+    else
+      moveToPerc(0.2);
+  }
+
   // if((millis()/1000) % 2 == 0)
-  // {
-  //   controller.moveTo(max_position * 0.8);
-  // }
+  //   moveToPerc(0);
   // else
-  // {
-  //   controller.moveTo(max_position * 0.2);
-  // }
+  //   moveToPerc(1);
 }
 
 
