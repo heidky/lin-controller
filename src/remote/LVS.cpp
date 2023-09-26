@@ -1,52 +1,20 @@
 #include "LVS.h"
 
-bool LVS::begin()
+bool LVS::begin(BLEService &service)
 {
-    // begin initialization
-  if (!BLE.begin()) {
-    Serial.println("starting Bluetooth® Low Energy module failed!");
-    return false;
-  }
-
-  // set the local name peripheral advertises
-  BLE.setLocalName(local_name.c_str());
-  // set the UUID for the service this peripheral advertises:
-  BLE.setAdvertisedService(service);
+  // // set the local name peripheral advertises
+  // BLE.setLocalName(local_name.c_str());
+  // // set the UUID for the service this peripheral advertises:
+  // BLE.setAdvertisedService(service);
 
   // add the characteristics to the service
   service.addCharacteristic(rx);
   service.addCharacteristic(tx);
 
-  // add the service
-  BLE.addService(service);
+  rx.writeValue("");
+  tx.writeValue("");
 
   return true;
-}
-
-
-void LVS::end()
-{
-  BLE.end();
-}
-
-
-void LVS::start()
-{
-  rx.writeValue("");
-  tx.writeValue("");
-
-  // start advertising
-  BLE.advertise();
-}
-
-
-void LVS::stop()
-{
-  rx.writeValue("");
-  tx.writeValue("");
-
-  // stop advertising
-  BLE.stopAdvertise();
 }
 
 
@@ -55,8 +23,6 @@ bool LVS::available()
   command = LVSCommand::None;
   raw_value = 0;
   value = 0.0;
-
-  BLE.poll();
 
   if (tx.written()) {
     String data = tx.value();

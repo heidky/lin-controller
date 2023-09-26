@@ -28,10 +28,7 @@ public:
 
   LVS() {};
 
-  bool begin();
-  void end();
-  void start();
-  void stop();
+  bool begin(BLEService &service);
   bool available();
 
   LVSCommand getCommand() const { return command; }
@@ -40,7 +37,7 @@ public:
 
 protected:
   // service to be connect to
-  BLEService service = BLEService(LVS_SERVICE_UUID); // create service
+  // BLEService service = BLEService(LVS_SERVICE_UUID); // create service
   // create switch characteristic and allow remote device to read and write
   BLEStringCharacteristic tx = BLEStringCharacteristic(LVS_TX_CHARASTERIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse, RX_TX_BYTE_SIZE);
   // create button characteristic and allow remote device to get notifications

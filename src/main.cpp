@@ -5,14 +5,17 @@
 
 #include "motion/HBridge.h"
 #include "motion/MotorController.h"
+#include "motion/Motion.h"
+#include "remote/BLRemote.h"
 #include "remote/LVS.h"
-#include "remote/Config.h"
+// #include "remote/Config.h"
 
 
 #define DRUM_RADIUS_CM    1
 #define ROD_MIN_CM        5
 #define ROD_MAX_CM        50
 #define MARGIN_CM         0.25
+#define MAX_SPEED         15
 
 #define CALIBRATION_SPEED 1
 #define CALIBRATION_FORCE 0.4
@@ -31,8 +34,10 @@ const float margin_rev = MARGIN_CM * rev_per_cm;
 AS5600 encoder;   //  use default Wire
 HBridge motor(2, 3);
 MotorController controller(encoder, motor);
+Motion motion(controller, cm_per_rev);
+BLRemote remote(controller);
 LVS lvs;
-Configurator configurator(controller);
+// Configurator configurator(controller);
 
 
 enum class State
@@ -54,7 +59,7 @@ void CalibrationMax_update();
 void Operative_enter();
 void Operative_update();
 
-void Error_enter(const String &msg);
+void Error_enter(const String &msg, int=1);
 void checkSlowLoopTime();
 void checkMotorDirectionError();
 
@@ -71,30 +76,10 @@ int direction_error_counter = 0;
 
 
 
-
-void moveToPerc(float perc)
-{
-  if(perc > 1) perc = 1.0;
-  if(perc < 0) perc = 0.0;
-
-  controller.moveTo((max_position - min_position) * perc + min_position);
-}
-
-
-void moveToCm(float cm)
-{
-  const float travel_lenght = max_position - min_position;
-  if(cm < 0) cm = 0;
-  if(cm > travel_lenght) cm = travel_lenght;
-
-  moveToPerc(cm / travel_lenght);
-}
-
-
 void setup()
 {
   Serial.begin(57600);
-  // while(!Serial);
+  while(!Serial);
   Serial.println("\n\n**LIN Controller [v0.0]**\n");
 
   // Motor controller check
@@ -113,13 +98,26 @@ void setup()
   Serial.print(encoder_manget_ok);
 
   if(encoder.magnetTooStrong())
-    Serial.print("[Too Strong] ");
+    Serial.print(" [Too Strong] ");
   if(encoder.magnetTooWeak())
-    Serial.print("[Too Weak] ");
+    Serial.print(" [Too Weak] ");
   Serial.println();
   delay(1000);
 
   // configurator.begin();
+  bool remote_success = remote.begin();
+  if(!remote_success)
+  {
+    Serial.println("ERROR: starting Bluetooth® Low Energy module failed!");
+    while(true) delay(1000);
+  }
+  else
+    Serial.println("REMOTE: Bluetooth® Low Energy module operative!");
+
+  lvs.begin(remote.getPrimaryService());
+  delay(100);
+  remote.start();
+
   CalibrationZero_enter();
 }
 
@@ -135,7 +133,6 @@ void loop()
   else if(state == State::Error)
     controller.off();
 
-  configurator.update();
   controller.update();
 
   checkSlowLoopTime();
@@ -202,6 +199,12 @@ void CalibrationMax_update()
     max_position = end_travel - margin_rev;
     min_position = margin_rev;
     rod_length = end_travel * cm_per_rev;
+    motion.setPostionLimits(min_position, max_position);
+
+    RemoteInfo *info = remote.getInfoRef();
+    info->max_speed = MAX_SPEED;
+    info->rod_lenght = (max_position - min_position) * cm_per_rev;
+    remote.notifyInfoUpdate();
 
     if(rod_length > ROD_MIN_CM && rod_length < ROD_MAX_CM)
     {
@@ -221,53 +224,53 @@ void CalibrationMax_update()
   checkMotorDirectionError();
 }
 
+
 // ============ OPERATIVE ================
 void Operative_enter()
 {
   state = State::Operative;
   controller.setForce(1);
-  controller.setSpeed(20); 
-  moveToPerc(0);
+  controller.setSpeed(2); 
+  motion.moveToCm(0);
 
-  lvs.begin();
-  lvs.start();
   Serial.println("OPERATIVE");
 }
 
 
 void Operative_update()   
 {
+  remote.update();
+
   if(lvs.available())
   {
     LVSCommand cmd = lvs.getCommand();
-    if(cmd == LVSCommand::Thrust || cmd == LVSCommand::Vibe)
+    float value = lvs.getValue();
+
+    if(cmd == LVSCommand::Thrust)
     {
-      float value = 1 - lvs.getValue();
-      moveToPerc(value);
+      motion.moveToPerc(value);
+    }
+    else if(cmd == LVSCommand::Vibe)
+    {
+      motion.vibe_value = value;
+      motion.vibe_throw = 0.75;
     }
   }
 
-  if(!controller.isTraveling()) 
-  {
-    if (controller.getCurrentPosition() > 0.5)
-      moveToPerc(0);
-    else
-      moveToPerc(0.2);
-  }
-
-  // if((millis()/1000) % 2 == 0)
-  //   moveToPerc(0);
-  // else
-  //   moveToPerc(1);
+  motion.update();
 }
 
 
 // ============= ERROR ===============
-void Error_enter(const String &msg)
+void Error_enter(const String &msg, int code)
 {
   state = State::Error;
   controller.off();
   Serial.println(msg);
+
+  RemoteInfo *info = remote.getInfoRef();
+  info->error_code = code;
+  remote.notifyInfoUpdate();
 }
 
 
@@ -280,6 +283,10 @@ void checkSlowLoopTime()
     Serial.print("SLOW LOOP: ");
     Serial.print(delta);
     Serial.println("ms");
+
+    RemoteInfo *info = remote.getInfoRef();
+    info->slow_loops_count += 1;
+    remote.notifyInfoUpdate();
   }
   last_loop_millis = now;
 }

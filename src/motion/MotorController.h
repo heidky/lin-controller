@@ -87,4 +87,7 @@ public:
 
   float getThrottleSmoothing() { return throttle_smooth_alpha; }
   void setThrottleSmoothing(float t) { if(t >=0) throttle_smooth_alpha = t; }
+
+  float getTolerance() { return tolerance; }
+  void setTolerance(float t) { if(t > 0) tolerance = t; }
 };
