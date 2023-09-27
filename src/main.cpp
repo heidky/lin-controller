@@ -21,7 +21,8 @@
 #define CALIBRATION_FORCE 0.4
 
 #define SAFE_LOOP_MS 6
-// #define PLOT_DEBUG
+// #define DEV_PLOT
+// #define DEV_MODE
 
 
 const float cm_per_rev = 2 * PI * DRUM_RADIUS_CM;
@@ -79,7 +80,9 @@ int direction_error_counter = 0;
 void setup()
 {
   Serial.begin(57600);
+#ifdef DEV_MODE
   while(!Serial);
+#endif
   Serial.println("\n\n**LIN Controller [v0.0]**\n");
 
   // Motor controller check
@@ -137,7 +140,7 @@ void loop()
 
   checkSlowLoopTime();
 
-#ifdef PLOT_DEBUG
+#ifdef DEV_PLOT
   Serial.print(">");
   Serial.print(controller.getCurrentPosition());
   Serial.print(" ");

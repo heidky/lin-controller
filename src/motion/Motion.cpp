@@ -27,11 +27,13 @@ float ease(float x, float x_margin, float y_min)
 
 void Motion::update()
 {
-  float vibe_ref = 0;
-  float vibe_max = vibe_throw;
+  const float vibe_ref = 1;
+  const float vibe_max = 1 - vibe_throw;
 
   if(vibe_value > 0.05 && vibe_throw > 0.05)
   { 
+    is_vibing = true;
+
     if(!controller.isTraveling())
     {
       if(vibe_to_ref)
@@ -39,16 +41,16 @@ void Motion::update()
         moveToPerc(vibe_ref);
         vibe_to_ref = false;
 
-        Serial.print("to ref ");
-        Serial.println(getPerc());
+        // Serial.print("to ref ");
+        // Serial.println(getPerc());
       }
       else
       {
         moveToPerc(vibe_max);
         vibe_to_ref = true;
 
-        Serial.print("to max ");
-        Serial.println(getPerc());
+        // Serial.print("to max ");
+        // Serial.println(getPerc());
       }
     }
 
@@ -61,10 +63,11 @@ void Motion::update()
     // Serial.print(" ");
     // Serial.println(e);
   }
-  else
+  else if(is_vibing)
   {
     controller.setSpeed(VIBE_MIN_SPEED);
     moveToPerc(vibe_ref);
+    is_vibing = false;
   }
 }
 

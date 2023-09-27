@@ -9,6 +9,9 @@ protected:
   float min_position;
   float max_position;
 
+  bool vibe_to_ref = false;
+  bool is_vibing = true;
+
 public:
   Motion(MotorController &controller, float cm_per_rev): controller(controller), cm_per_rev(cm_per_rev) {};
 
@@ -21,7 +24,6 @@ public:
 
   float vibe_throw = 0;
   float vibe_value = 0;
-  bool vibe_to_ref = false;
 
   void update();
 
