@@ -62,6 +62,11 @@ public:
   void cancelMove();
 
   bool isTraveling() const { return in_travel; }
+  float travelPerc() const {
+    return in_travel 
+      ? abs(getCurrentPosition() - travel_start_pos) / abs(getTargetPosition() - travel_start_pos)
+      : 0;
+  }
 
   void resetPosition(float pos);
   bool isAligned();

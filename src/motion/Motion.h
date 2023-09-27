@@ -21,6 +21,7 @@ public:
 
   float vibe_throw = 0;
   float vibe_value = 0;
+  bool vibe_to_ref = false;
 
   void update();
 

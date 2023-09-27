@@ -2,35 +2,69 @@
 #include "math.h"
 
 #define VIBE_EASE_PERC 0.25
-#define VIBE_MIN_SPEED 3
-#define VIBE_MAX_SPEED 15
+#define VIBE_MIN_SPEED 1.0
+#define VIBE_MAX_SPEED 15.0
+
+
+float mapf(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+
+float ease(float x, float x_margin, float y_min)
+{
+  float p = 1.0;
+
+  if(x < x_margin)
+    p = x / x_margin;
+  else if((1 - x) < x_margin)
+    p = (1 - x) / x_margin;
+
+  return p * (1 - y_min) + y_min;
+}
+
 
 void Motion::update()
 {
-  if(vibe_value > 0.1 && vibe_throw > 0.1)
-  {
-    float travel_perc = getPerc() / vibe_throw;
+  float vibe_ref = 0;
+  float vibe_max = vibe_throw;
 
+  if(vibe_value > 0.05 && vibe_throw > 0.05)
+  { 
     if(!controller.isTraveling())
     {
-      if(travel_perc > 0.5)
-        moveToPerc(0);
+      if(vibe_to_ref)
+      {
+        moveToPerc(vibe_ref);
+        vibe_to_ref = false;
+
+        Serial.print("to ref ");
+        Serial.println(getPerc());
+      }
       else
-        moveToPerc(vibe_throw);
+      {
+        moveToPerc(vibe_max);
+        vibe_to_ref = true;
+
+        Serial.print("to max ");
+        Serial.println(getPerc());
+      }
     }
 
-    const float p = travel_perc > 0.5 ? 1 - travel_perc : travel_perc;
+    // const float ease_min = mapf(vibe_value, 0, 1, 1, .2);
+    const float speed = mapf(vibe_value, 0, 1, VIBE_MIN_SPEED, VIBE_MAX_SPEED);
+    const float e = ease(controller.travelPerc(), VIBE_EASE_PERC, .2);
+    controller.setSpeed(speed * e);
 
-    float s = 1.0;
-    if(p < VIBE_EASE_PERC) s = p/VIBE_EASE_PERC;
-
-    const float speed = (VIBE_MIN_SPEED + (VIBE_MAX_SPEED - VIBE_MIN_SPEED) * s) * vibe_value;
-    controller.setSpeed(speed);
+    // Serial.print(controller.travelPerc());
+    // Serial.print(" ");
+    // Serial.println(e);
   }
   else
   {
-    controller.setSpeed((VIBE_MAX_SPEED - VIBE_MIN_SPEED) / 2);
-    moveToPerc(0);
+    controller.setSpeed(VIBE_MIN_SPEED);
+    moveToPerc(vibe_ref);
   }
 }
 

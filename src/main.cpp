@@ -230,7 +230,7 @@ void Operative_enter()
 {
   state = State::Operative;
   controller.setForce(1);
-  controller.setSpeed(2); 
+  controller.setSpeed(3); 
   motion.moveToCm(0);
 
   Serial.println("OPERATIVE");
@@ -246,15 +246,22 @@ void Operative_update()
     LVSCommand cmd = lvs.getCommand();
     float value = lvs.getValue();
 
-    if(cmd == LVSCommand::Thrust)
+    if(cmd == LVSCommand::Thrust || cmd == LVSCommand::Vibe)
     {
       motion.moveToPerc(value);
     }
-    else if(cmd == LVSCommand::Vibe)
+    else if(cmd == LVSCommand::Vibe1)
     {
       motion.vibe_value = value;
-      motion.vibe_throw = 0.75;
     }
+    else if(cmd == LVSCommand::Vibe2)
+    {
+      motion.vibe_throw = value;
+    }
+
+    // Serial.print(motion.vibe_throw);
+    // Serial.print(" ");
+    // Serial.println(motion.vibe_value);
   }
 
   motion.update();

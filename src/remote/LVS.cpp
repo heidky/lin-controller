@@ -35,6 +35,8 @@ bool LVS::available()
 
 bool LVS::handleTx(const String &data)
 {
+  // Serial.println(data);
+
   bool has_command = false;
 
   if(data.startsWith("Vibrate:"))
@@ -43,6 +45,17 @@ bool LVS::handleTx(const String &data)
     const int v = data.substring(8, data.length()-1).toInt();
 
     command = LVSCommand::Vibe;
+    raw_value = v;
+    value = v / 20.0;
+
+    has_command = true;
+  }
+  else if(data.startsWith("Vibrate"))
+  {
+    rx.writeValue("OK;");
+    const int v = data.substring(9, data.length()-1).toInt();
+
+    command = data[7] == '1' ? LVSCommand::Vibe1 : LVSCommand::Vibe2;
     raw_value = v;
     value = v / 20.0;
 

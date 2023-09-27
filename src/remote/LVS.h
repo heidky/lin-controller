@@ -3,9 +3,11 @@
 #include <Arduino.h>
 #include <ArduinoBLE.h>
 
-#define LVS_SERVICE_UUID              "46300001-0023-4bd4-bbd5-a6920e4c5653"
-#define LVS_TX_CHARASTERIC_UUID       "46300002-0023-4bd4-bbd5-a6920e4c5653"
-#define LVS_RX_CHARASTERIC_UUID       "46300003-0023-4bd4-bbd5-a6920e4c5653"
+// sm 46
+#define LVS_SERVICE_UUID              "50300001-0023-4bd4-bbd5-a6920e4c5653"
+#define LVS_TX_CHARASTERIC_UUID       "50300002-0023-4bd4-bbd5-a6920e4c5653"
+#define LVS_RX_CHARASTERIC_UUID       "50300003-0023-4bd4-bbd5-a6920e4c5653"
+
 #define LVS_IDENTIFIER                "F"
 #define LVS_ADDRESS                   "0082059AD3BD"
 #define LVS_FIRMWARE                  "11"
@@ -16,6 +18,8 @@ enum class LVSCommand
 {
   None = 0,
   Vibe,
+  Vibe1,
+  Vibe2,
   Thrust,
 };
 

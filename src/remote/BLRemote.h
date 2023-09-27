@@ -20,14 +20,14 @@ protected:
   MotorController &controller;
   RemoteInfo info_value;
 
-  BLEService service = BLEService("46300001-0023-4bd4-bbd5-a6920e4c5653");
+  BLEService service = BLEService("50300001-0023-4bd4-bbd5-a6920e4c5653");
 
-  BLEStringCharacteristic config = BLEStringCharacteristic("46300005-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLENotify, 200);
-  BLEStringCharacteristic config_rx = BLEStringCharacteristic("46300006-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLEWrite, 20);
+  BLEStringCharacteristic config = BLEStringCharacteristic("50300005-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLENotify, 200);
+  BLEStringCharacteristic config_rx = BLEStringCharacteristic("50300006-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLEWrite, 20);
 
-  BLEStringCharacteristic info = BLEStringCharacteristic("46300007-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLENotify, 200);
+  BLEStringCharacteristic info = BLEStringCharacteristic("50300007-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLENotify, 200);
 
-  BLEStringCharacteristic motion_rx = BLEStringCharacteristic("46300008-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLEWrite, 50);
+  BLEStringCharacteristic motion_rx = BLEStringCharacteristic("50300008-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLEWrite, 50);
 
 
   void updateConfig();
