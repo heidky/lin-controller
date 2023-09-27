@@ -34,7 +34,7 @@ void Motion::update()
   { 
     is_vibing = true;
 
-    if(!controller.isTraveling())
+    if(!controller.isTraveling() || controller.isStuck())
     {
       if(vibe_to_ref)
       {
@@ -63,11 +63,12 @@ void Motion::update()
     // Serial.print(" ");
     // Serial.println(e);
   }
-  else if(is_vibing)
+  else if(is_vibing || prev_throw != vibe_throw)
   {
     controller.setSpeed(VIBE_MIN_SPEED);
-    moveToPerc(vibe_ref);
+    moveToPerc(vibe_max);
     is_vibing = false;
+    prev_throw = vibe_throw;
   }
 }
 

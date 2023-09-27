@@ -34,6 +34,8 @@ protected:
   long travel_start_time = -1;
   float travel_start_pos = 0;
 
+  float Vp_min = 0.25;
+
   void travelStart();
   void travelEnd();
   
@@ -42,7 +44,7 @@ public:
     encoder(encoder),
     motor(motor),
     position_pid(&current_position, &target_speed, &target_position, 50.0, 0.0, 0.0, DIRECT),
-    speed_pid(&current_speed, &throttle_output, &target_speed, 0.25, 0.0, 0.0, DIRECT)
+    speed_pid(&current_speed, &throttle_output, &target_speed, Vp_min, 0.0, 0.0, DIRECT)
   {};
 
   void begin();
@@ -79,7 +81,7 @@ public:
   float getTargetSpeed() const { return target_speed; }
   float getThrottleOutput() const { return throttle_output; }
 
-  double getVp() { return speed_pid.GetKp(); }
+  double getVp() { return Vp_min; }
   double getVi() { return speed_pid.GetKi(); }
   double getVd() { return speed_pid.GetKd(); }
 
