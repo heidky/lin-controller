@@ -36,7 +36,7 @@ AS5600 encoder;   //  use default Wire
 HBridge motor(2, 3);
 MotorController controller(encoder, motor);
 Motion motion(controller, cm_per_rev);
-BLRemote remote(controller);
+BLRemote remote(controller, motion);
 LVS lvs;
 // Configurator configurator(controller);
 

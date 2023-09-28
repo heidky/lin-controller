@@ -142,6 +142,17 @@ void BLRemote::handleMotionRx(const String &data)
   float speed;
   cursor = extract_cmd(data, cursor, data_len, &speed_mode, &speed);
   if(cursor < 0) return;
+
+  if(pos_mode == 'p' and speed_mode == 's') {
+    controller.setSpeed(speed);
+    motion.moveToPerc(pos);
+
+    motion.zeroVibe();
+  }
+
+  if(pos_mode == 't' and speed_mode == 's') {
+    motion.doVibe(pos, speed);
+  }
   
   Serial.print(pos_mode);
   Serial.print(speed_mode);
