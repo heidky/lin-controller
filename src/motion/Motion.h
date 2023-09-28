@@ -1,3 +1,4 @@
+#pragma once
 #include <Arduino.h>
 #include "MotorController.h"
 
@@ -30,5 +31,9 @@ public:
 
   void moveToPerc(float perc);
   void moveToCm(float cm);
+
+  void doVibe(float throw_d, float speed) {vibe_throw = throw_d; vibe_value = speed ;}
+  void zeroVibe() { doVibe(0, 0); }
+
   float getPerc() { return (controller.getCurrentPosition() - min_position) / (max_position - min_position); }
 };

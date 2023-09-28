@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <ArduinoBLE.h>
 #include "../motion/MotorController.h"
+#include "../motion/Motion.h"
 
 
 struct RemoteInfo
@@ -18,6 +19,7 @@ class BLRemote
 protected:
   bool active = false;
   MotorController &controller;
+  Motion &motion;
   RemoteInfo info_value;
 
   BLEService service = BLEService("50300001-0023-4bd4-bbd5-a6920e4c5653");
@@ -27,7 +29,7 @@ protected:
 
   BLEStringCharacteristic info = BLEStringCharacteristic("50300007-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLENotify, 200);
 
-  BLEStringCharacteristic motion_rx = BLEStringCharacteristic("50300008-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLEWrite, 50);
+  BLEStringCharacteristic motion_rx = BLEStringCharacteristic("50300008-0023-4bd4-bbd5-a6920e4c5653", BLERead | BLEWrite | BLEWriteWithoutResponse, 50);
 
 
   void updateConfig();
@@ -36,7 +38,7 @@ protected:
   void handleMotionRx(const String &data);
 
 public:
-  BLRemote(MotorController &controller): controller(controller) {}
+  BLRemote(MotorController &controller, Motion &motion): controller(controller), motion(motion) {}
 
   bool begin();
   void start();
