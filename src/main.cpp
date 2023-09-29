@@ -43,7 +43,7 @@ LVS lvs;
 
 enum class State
 {
-  Boot,
+  Boot = 0,
   CalibrationZero,
   CalibrationMax,
   Operative,
@@ -75,6 +75,15 @@ float rod_length = 0;
 long last_loop_millis = -1;
 int direction_error_counter = 0;
 
+
+void setState(State s)
+{
+  state = s;
+  int state_code = static_cast<int>(s);
+  auto info = remote.getInfoRef();
+  info->state_code = state_code;
+  remote.notifyInfoUpdate();
+}
 
 
 void setup()
@@ -127,6 +136,8 @@ void setup()
 
 void loop() 
 {
+  BLE.poll();
+
   if(state == State::CalibrationZero)
     CalibrationZero_update();
   else if(state == State::CalibrationMax)
@@ -159,7 +170,7 @@ void loop()
 // ============== CALIBRATION ================
 void CalibrationZero_enter()
 {
-  state = State::CalibrationZero;
+  setState(State::CalibrationZero);
   controller.setForce(CALIBRATION_FORCE);
   controller.setSpeed(CALIBRATION_SPEED);
   controller.moveTo(-calibration_max_rev);
@@ -185,7 +196,7 @@ void CalibrationZero_update()
 
 void CalibrationMax_enter()
 {
-  state = State::CalibrationMax;
+  setState(State::CalibrationMax);
   controller.setForce(CALIBRATION_FORCE);
   controller.setSpeed(CALIBRATION_SPEED);
   controller.moveTo(calibration_max_rev);
@@ -231,7 +242,7 @@ void CalibrationMax_update()
 // ============ OPERATIVE ================
 void Operative_enter()
 {
-  state = State::Operative;
+  setState(State::Operative);
   controller.setForce(1);
   controller.setSpeed(3); 
   motion.moveToCm(0);
@@ -274,7 +285,7 @@ void Operative_update()
 // ============= ERROR ===============
 void Error_enter(const String &msg, int code)
 {
-  state = State::Error;
+  setState(State::Error);
   controller.off();
   Serial.println(msg);
 

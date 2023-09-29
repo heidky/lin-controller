@@ -50,7 +50,7 @@ void BLRemote::end()
 
 void BLRemote::update()
 {
-  BLE.poll();
+  // BLE.poll();
 
   if(config_rx.written())
   {
@@ -68,7 +68,8 @@ void BLRemote::update()
 void BLRemote::notifyInfoUpdate()
 {
   char buffer[256];
-  sprintf(buffer, "Ec:%d|Rl:%.4f|Sl:%d|Ms:%.4f",
+  sprintf(buffer, "St:%d|Ec:%d|Rl:%.4f|Sl:%d|Ms:%.4f",
+    info_value.state_code,
     info_value.error_code,
     info_value.rod_lenght,
     info_value.slow_loops_count,
@@ -108,6 +109,12 @@ void BLRemote::handleConfigRx(const String &data)
   else if(param_name == "Ta") controller.setThrottleSmoothing(value);
   else if(param_name == "F")  controller.setForce(value);
   else if(param_name == "To") controller.setTolerance(value);
+  else if(param_name == "Rst") {
+    if(value > 0.5) {
+      Serial.println("Reset");
+      NVIC_SystemReset();
+    }
+  }
 
   updateConfig();
 }

@@ -7,6 +7,7 @@
 
 struct RemoteInfo
 {
+  int state_code = 0;
   int error_code = 0;
   int slow_loops_count = 0;
   float rod_lenght = -1;
