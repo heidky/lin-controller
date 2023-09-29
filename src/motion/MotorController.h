@@ -44,7 +44,7 @@ public:
     encoder(encoder),
     motor(motor),
     position_pid(&current_position, &target_speed, &target_position, 50.0, 0.0, 0.0, DIRECT),
-    speed_pid(&current_speed, &throttle_output, &target_speed, Vp_min, 0.0, 0.0, DIRECT)
+    speed_pid(&current_speed, &throttle_output, &target_speed, .25, 0.0, 0.0, DIRECT)
   {};
 
   void begin();
