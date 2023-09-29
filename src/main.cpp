@@ -61,6 +61,8 @@ void Operative_enter();
 void Operative_update();
 
 void Error_enter(const String &msg, int=1);
+void Error_update();
+
 void checkSlowLoopTime();
 void checkMotorDirectionError();
 
@@ -144,8 +146,9 @@ void loop()
     CalibrationMax_update();
   else if(state == State::Operative)
     Operative_update();
-  else if(state == State::Error)
-    controller.off();
+  else if(state == State::Error) {
+    Error_update();
+  }
 
   controller.update();
 
@@ -292,6 +295,11 @@ void Error_enter(const String &msg, int code)
   RemoteInfo *info = remote.getInfoRef();
   info->error_code = code;
   remote.notifyInfoUpdate();
+}
+
+void Error_update() {
+  controller.off();
+  remote.checkResetRequest();
 }
 
 

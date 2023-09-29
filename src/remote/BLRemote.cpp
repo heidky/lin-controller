@@ -78,6 +78,14 @@ void BLRemote::notifyInfoUpdate()
   info.writeValue(buffer);
 }
 
+void BLRemote::checkResetRequest()
+{
+  if(config_rx.written())
+  {
+    String data = config_rx.value();
+    handleConfigRx(data);
+  }
+}
 
 void BLRemote::updateConfig()
 {

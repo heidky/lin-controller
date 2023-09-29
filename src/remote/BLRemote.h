@@ -51,4 +51,6 @@ public:
 
   RemoteInfo* getInfoRef() { return &info_value; }
   void notifyInfoUpdate();
+
+  void checkResetRequest();
 };

@@ -15,7 +15,7 @@ protected:
   double last_throttle_output = 0;
 
   float throttle_smooth_alpha = 0.05;
-  float tolerance = 0.05;
+  float tolerance = 0.1;
   float force = 1.0;
   float speed = 1.0;
 
