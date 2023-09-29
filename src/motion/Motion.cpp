@@ -2,6 +2,7 @@
 #include "math.h"
 
 #define VIBE_EASE_PERC 0.25
+#define VIBE_RETRACT_SPEED 3.0
 #define VIBE_MIN_SPEED 1.0
 #define VIBE_MAX_SPEED 15.0
 
@@ -65,7 +66,7 @@ void Motion::update()
   }
   else if(is_vibing || prev_throw != vibe_throw)
   {
-    controller.setSpeed(VIBE_MIN_SPEED);
+    controller.setSpeed(VIBE_RETRACT_SPEED);
     moveToPerc(vibe_max);
     is_vibing = false;
     prev_throw = vibe_throw;
