@@ -142,39 +142,64 @@ int extract_cmd(const String &data, int start_index, int data_len, char *out_ind
   return cursor + 1;
 }
 
+int extract_cmd_list(const String &data, char modes[], float values[], const int max_len)
+{
+  const int data_len = data.length();
+  int cursor = 0;
+  int count = 0;
+
+  for (int i = 0; i < max_len && cursor < data_len; i++)
+  {
+    char mode = '0';
+    float value = 0.0;
+
+    cursor = extract_cmd(data, cursor, data_len, &mode, &value);
+    if(cursor < 0) break;
+    
+    modes[count] = mode;
+    values[count] = value;
+    count ++;
+  }
+
+  return count;
+}
+
 
 void BLRemote::handleMotionRx(const String &data)
 { 
-  int cursor = 0;
-  int data_len = data.length();
+  char modes[10] = {};
+  float values[10] = {};
+  const int count = extract_cmd_list(data, modes, values, 10);
 
-  char pos_mode;
-  float pos;
-  cursor = extract_cmd(data, cursor, data_len, &pos_mode, &pos);
-  if(cursor < 0 || cursor >= data_len) return;
-  
-  char speed_mode;
-  float speed;
-  cursor = extract_cmd(data, cursor, data_len, &speed_mode, &speed);
-  if(cursor < 0) return;
+  if(count >= 2) 
+  {
+    if(modes[0] == 'p' and modes[1] == 's')
+    {
+      controller.setSpeed(values[1]);
+      motion.moveToPerc(values[0]);
 
-  if(pos_mode == 'p' and speed_mode == 's') {
-    controller.setSpeed(speed);
-    motion.moveToPerc(pos);
+      motion.zeroVibe();
+    }
 
-    motion.zeroVibe();
+    if(modes[0] == 't' and modes[1] == 's')
+    {
+      if(count >= 3 && modes[2] == 'e')
+        motion.setVibeEase(values[2]);
+        
+      motion.doVibe(values[0], values[1]);
+    }
   }
-
-  if(pos_mode == 't' and speed_mode == 's') {
-    motion.doVibe(pos, speed);
+  else 
+  {
+    Serial.println("cmd invalid size");
   }
   
-  Serial.print(pos_mode);
-  Serial.print(speed_mode);
-  Serial.print(" ");
-  Serial.print(pos);
-  Serial.print(" ");
-  Serial.println(speed);
+  // Serial.print(modes[0]);
+  // Serial.print(modes[1]);
+  // Serial.print(" ");
+  // Serial.print(values[0]);
+  // Serial.print(" ");
+  // Serial.println(values[1]);
 }
 
 
@@ -196,3 +221,38 @@ void BLRemote::handleMotionRx(const String &data)
   // else if(param_name == "P")  controller.moveTo(value > 0 ? 1 : 0.2);
   // else if(param_name == "S")  controller.setSpeed(value);
   // else if(param_name == "F")  controller.setForce(value);
+
+
+
+
+
+  // int cursor = 0;
+  // int data_len = data.length();
+
+  // char pos_mode;
+  // float pos;
+  // cursor = extract_cmd(data, cursor, data_len, &pos_mode, &pos);
+  // if(cursor < 0 || cursor >= data_len) return;
+  
+  // char speed_mode;
+  // float speed;
+  // cursor = extract_cmd(data, cursor, data_len, &speed_mode, &speed);
+  // if(cursor < 0) return;
+
+  // if(pos_mode == 'p' and speed_mode == 's') {
+  //   controller.setSpeed(speed);
+  //   motion.moveToPerc(pos);
+
+  //   motion.zeroVibe();
+  // }
+
+  // if(pos_mode == 't' and speed_mode == 's') {
+  //   motion.doVibe(pos, speed);
+  // }
+
+  // Serial.print(pos_mode);
+  // Serial.print(speed_mode);
+  // Serial.print(" ");
+  // Serial.print(pos);
+  // Serial.print(" ");
+  // Serial.println(speed);

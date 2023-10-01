@@ -16,7 +16,7 @@ float mapf(float x, float in_min, float in_max, float out_min, float out_max)
 float ease(float x, float x_margin, float y_min)
 {
   if(x_margin <= 0.000001) return x;
-  
+
   float p = 1.0;
 
   if(x < x_margin)
@@ -91,4 +91,13 @@ void Motion::moveToCm(float cm)
   if(cm > travel_lenght) cm = travel_lenght;
 
   moveToPerc(cm / travel_lenght);
+}
+
+
+void Motion::setVibeEase(float ease)
+{
+  if(ease < 0) ease = 0;
+  else if(ease > 0.5) ease = 0.5;
+
+  vibe_ease = ease;
 }

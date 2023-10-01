@@ -35,6 +35,7 @@ public:
 
   void doVibe(float throw_d, float speed) {vibe_throw = throw_d; vibe_value = speed ;}
   void zeroVibe() { doVibe(0, 0); }
+  void setVibeEase(float ease);
 
   float getPerc() { return (controller.getCurrentPosition() - min_position) / (max_position - min_position); }
 };
