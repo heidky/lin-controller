@@ -66,7 +66,7 @@ void MotorController::setSpeed(float s)
   this->speed = s;
   position_pid.SetOutputLimits(-s, +s);
   // used to update Vp so that max command for max error is 1
-  // this->setTuningsV(-1, -1, -1);
+  this->setTuningsV(-1, -1, -1);
 }
 
 
@@ -125,11 +125,13 @@ bool MotorController::checkDirectionError()
 
 void MotorController::setTuningsV(double p, double i, double d)
 {
-  if(p < 0) p = speed_pid.GetKp();
+  if(p < 0) p = Vp_min;
   if(i < 0) i = speed_pid.GetKi();
   if(d < 0) d = speed_pid.GetKd();
 
-  speed_pid.SetTunings(p, i, d);
+  Vp_min = p;
+  const float scaled_p = max(Vp_min, 1.1 / this->speed);
+  speed_pid.SetTunings(scaled_p, i, d);
 }
 
 void MotorController::setTuningsP(double p, double i, double d)

@@ -14,7 +14,7 @@ protected:
   double throttle_output = 0;
   double last_throttle_output = 0;
 
-  float throttle_smooth_alpha = 0.05;
+  float throttle_smooth_alpha = 0.3;
   float tolerance = 0.1;
   float force = 1.0;
   float speed = 1.0;
@@ -43,7 +43,7 @@ public:
   MotorController(AS5600 &encoder, HBridge &motor):
     encoder(encoder),
     motor(motor),
-    position_pid(&current_position, &target_speed, &target_position, 50.0, 0.0, 0.0, DIRECT),
+    position_pid(&current_position, &target_speed, &target_position, 200.0, 0.0, 0.0, DIRECT),
     speed_pid(&current_speed, &throttle_output, &target_speed, .25, 0.0, 0.0, DIRECT)
   {};
 

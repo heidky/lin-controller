@@ -1,10 +1,10 @@
 #include "Motion.h"
 #include "math.h"
 
-#define VIBE_EASE_PERC 0.25
+// #define VIBE_EASE_PERC 0.25
 #define VIBE_RETRACT_SPEED 3.0
 #define VIBE_MIN_SPEED 1.0
-#define VIBE_MAX_SPEED 15.0
+#define VIBE_MAX_SPEED 10.0
 
 
 float mapf(float x, float in_min, float in_max, float out_min, float out_max)
@@ -15,6 +15,8 @@ float mapf(float x, float in_min, float in_max, float out_min, float out_max)
 
 float ease(float x, float x_margin, float y_min)
 {
+  if(x_margin <= 0.000001) return x;
+  
   float p = 1.0;
 
   if(x < x_margin)
@@ -57,7 +59,7 @@ void Motion::update()
 
     // const float ease_min = mapf(vibe_value, 0, 1, 1, .2);
     const float speed = mapf(vibe_value, 0, 1, VIBE_MIN_SPEED, VIBE_MAX_SPEED);
-    const float e = ease(controller.travelPerc(), VIBE_EASE_PERC, .2);
+    const float e = ease(controller.travelPerc(), vibe_ease, .2);
     controller.setSpeed(speed * e);
 
     // Serial.print(controller.travelPerc());

@@ -26,6 +26,7 @@ public:
   float vibe_throw = 0;
   float prev_throw = -1;
   float vibe_value = 0;
+  float vibe_ease = 0.1;
 
   void update();
 
