@@ -21,8 +21,8 @@
 #define CALIBRATION_FORCE 0.4
 
 #define SAFE_LOOP_MS 6
-// #define DEV_PLOT
-// #define DEV_MODE
+#define DEV_PLOT
+#define DEV_MODE
 
 
 const float cm_per_rev = 2 * PI * DRUM_RADIUS_CM;
@@ -155,7 +155,6 @@ void loop()
   checkSlowLoopTime();
 
 #ifdef DEV_PLOT
-  Serial.print(">");
   Serial.print(controller.getCurrentPosition());
   Serial.print(" ");
   Serial.print(controller.getTargetPosition());
@@ -265,7 +264,8 @@ void Operative_update()
 
     if(cmd == LVSCommand::Thrust || cmd == LVSCommand::Vibe)
     {
-      motion.moveToPerc(value);
+      // motion.moveToPerc(value);
+      motion.doVibe(.5, value);
     }
     else if(cmd == LVSCommand::Vibe1)
     {

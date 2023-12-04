@@ -9,7 +9,8 @@ bool BLRemote::begin()
   }
 
   // set the local name peripheral advertises
-  BLE.setLocalName("Hmlo");
+  // BLE.setLocalName("Hmlo");
+  BLE.setLocalName("LVS-Z011");
   // set the UUID for the service this peripheral advertises:
 
   // add the characteristics to the service
