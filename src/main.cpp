@@ -22,8 +22,9 @@
 #define CALIBRATION_FORCE 0.4
 
 #define SAFE_LOOP_MS 6
-#define DEV_PLOT
-#define DEV_MODE
+
+// #define DEV_PLOT
+// #define DEV_MODE
 
 
 const float cm_per_rev = 2 * PI * DRUM_RADIUS_CM;
