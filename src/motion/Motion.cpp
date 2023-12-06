@@ -62,6 +62,14 @@ void Motion::update()
     const float e = ease(controller.travelPerc(), vibe_ease, .2);
     controller.setSpeed(speed * e);
 
+    // const float smooth = mapf(vibe_value, 0, 1, 0.05, 0.9);
+    float smooth;
+    if (vibe_value > 0.75) smooth = 1.0/3;
+    else if(vibe_value > 0.5) smooth = 1.0/6;
+    else if(vibe_value > 0.25) smooth = 1.0/12;
+    else smooth = 1.0/24;
+    controller.setThrottleSmoothing(smooth);
+
     // Serial.print(controller.travelPerc());
     // Serial.print(" ");
     // Serial.println(e);

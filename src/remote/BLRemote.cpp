@@ -115,7 +115,7 @@ void BLRemote::handleConfigRx(const String &data)
   else if(param_name == "Pp") controller.setTuningsP(value, -1, -1);
   else if(param_name == "Pi") controller.setTuningsP(-1, value, -1);
   else if(param_name == "Pd") controller.setTuningsP(-1, -1, value);
-  else if(param_name == "Ta") controller.setThrottleSmoothing(value);
+  // else if(param_name == "Ta") controller.setThrottleSmoothing(value);
   else if(param_name == "F")  controller.setForce(value);
   else if(param_name == "To") controller.setTolerance(value);
   else if(param_name == "Rst") {

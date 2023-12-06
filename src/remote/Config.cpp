@@ -92,7 +92,7 @@ void Configurator::handleRxWritten(const String &data)
   else if(param_name == "Pp") controller.setTuningsP(value, -1, -1);
   else if(param_name == "Pi") controller.setTuningsP(-1, value, -1);
   else if(param_name == "Pd") controller.setTuningsP(-1, -1, value);
-  else if(param_name == "Ta") controller.setThrottleSmoothing(value);
+  // else if(param_name == "Ta") controller.setThrottleSmoothing(value);
   else if(param_name == "P")  controller.moveTo(value > 0 ? 1 : 0.2);
   else if(param_name == "S")  controller.setSpeed(value);
   else if(param_name == "F")  controller.setForce(value);
