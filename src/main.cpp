@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <math.h>
 #include "AS5600.h"
+#include <arduino-timer.h>
 
 #include "motion/HBridge.h"
 #include "motion/MotorController.h"
@@ -40,6 +41,7 @@ BLRemote remote(controller, motion);
 LVS lvs;
 // Configurator configurator(controller);
 
+Timer<10, micros> timer;
 
 enum class State
 {
@@ -65,6 +67,8 @@ void Error_update();
 
 void checkSlowLoopTime();
 void checkMotorDirectionError();
+
+bool timed_loop(void *);
 
 
 
@@ -133,10 +137,18 @@ void setup()
   remote.start();
 
   CalibrationZero_enter();
+
+  timer.every(10 * 1000, timed_loop);
 }
 
 
 void loop() 
+{
+  timer.tick();
+}
+
+
+bool timed_loop(void *) 
 {
   BLE.poll();
 
@@ -167,7 +179,7 @@ void loop()
   Serial.println("");
 #endif
 
-  // delay(5);
+  return true;
 }
 
 
