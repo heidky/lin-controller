@@ -23,17 +23,20 @@ public:
     min_position = min;
   }
 
+  float vibe_zero = 0;
   float vibe_throw = 0;
-  float prev_throw = -1;
   float vibe_value = 0;
+
   float vibe_ease = 0.1;
+  float prev_throw = -1;
 
   void update();
 
   void moveToPerc(float perc);
   void moveToCm(float cm);
 
-  void doVibe(float throw_d, float speed) {vibe_throw = throw_d; vibe_value = speed ;}
+  void doVibe(float throw_d, float speed) { vibe_zero = 0; vibe_throw = throw_d; vibe_value = speed; }
+  void doVibe(float zero, float throw_d, float speed) { vibe_zero = zero; vibe_throw = throw_d; vibe_value = speed; }
   void zeroVibe() { doVibe(0, 0); }
   void setVibeEase(float ease);
 

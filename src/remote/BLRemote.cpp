@@ -172,21 +172,28 @@ void BLRemote::handleMotionRx(const String &data)
   float values[10] = {};
   const int count = extract_cmd_list(data, modes, values, 10);
 
-  if(count >= 2) 
+  if(count == 2) 
   {
     if(modes[0] == 'p' and modes[1] == 's')
     {
       controller.setSpeed(values[1]);
       motion.moveToPerc(values[0]);
-
       motion.zeroVibe();
     }
-
-    if(modes[0] == 't' and modes[1] == 's')
+    else if(modes[0] == 't' and modes[1] == 's')
+    {   
+      motion.doVibe(values[0], values[1]);
+    }
+  }
+  else if(count == 3)
+  {
+    if(modes[0] == 'z' and modes[1] == 't' and modes[2] == 's')
+    {   
+      motion.doVibe(values[0], values[1], values[2]);
+    }
+    else if (modes[0] == 't' and modes[1] == 's' and modes[2] == 'e')
     {
-      if(count >= 3 && modes[2] == 'e')
-        motion.setVibeEase(values[2]);
-        
+      motion.setVibeEase(values[2]);  
       motion.doVibe(values[0], values[1]);
     }
   }

@@ -30,8 +30,8 @@ float ease(float x, float x_margin, float y_min)
 
 void Motion::update()
 {
-  const float vibe_ref = 1;
-  const float vibe_max = 1 - vibe_throw;
+  const float vibe_ref = vibe_zero;
+  const float vibe_max = vibe_throw;
 
   if(vibe_value > 0.05 && vibe_throw > 0.05)
   { 
