@@ -11,31 +11,38 @@
 #include "remote/LVS.h"
 // #include "remote/Config.h"
 
+/** >> uncomment to wait for serial */
+#define DEV_MODE
 
-#define DRUM_RADIUS_CM    1
-#define ROD_MIN_CM        5
-#define ROD_MAX_CM        50
-#define MARGIN_CM         0.25
-#define MAX_SPEED         15
+/** >> uncomment to plot to serial */
+#define DEV_PLOT
 
-#define CALIBRATION_SPEED 1
-#define CALIBRATION_FORCE 0.4
+// =====> PIN CONFIG <=====
+#define PIN_IN1 3
+#define PIN_IN2 2
 
-#define SAFE_LOOP_MS 6
+constexpr float DRUM_RADIUS_CM     = 1.5;
+constexpr float ROD_MIN_CM         = 5.0;
+constexpr float ROD_MAX_CM         = 50;
+constexpr float ROD_END_MARGIN_CM  = 0.5;
+constexpr float MAX_SPEED_CMS      = 40.0;
 
-// #define DEV_PLOT
-// #define DEV_MODE
+constexpr float CALIBRATION_SPEED_CMS  = 1.0;
+constexpr float CALIBRATION_FORCE_PERC = 0.25;
+
+constexpr int CONTROL_LOOP_MS = 10; // 100hz control loop
+constexpr int WARN_SLOW_LOOP_MS = 12;
 
 
-const float cm_per_rev = 2 * PI * DRUM_RADIUS_CM;
-const float rev_per_cm = 1 / cm_per_rev;
+constexpr float cm_per_rev = 2.0 * PI * DRUM_RADIUS_CM;
+constexpr float rev_per_cm = 1.0 / cm_per_rev;
 
-const float calibration_max_rev = ROD_MAX_CM * 1.25 * rev_per_cm;
-const float margin_rev = MARGIN_CM * rev_per_cm;
+constexpr float calibration_max_rev = ROD_MAX_CM * 1.25 * rev_per_cm;
+constexpr float margin_rev = ROD_END_MARGIN_CM * rev_per_cm;
 
 
 AS5600 encoder;   //  use default Wire
-HBridge motor(2, 3);
+HBridge motor(PIN_IN1, PIN_IN2);
 MotorController controller(encoder, motor);
 Motion motion(controller, cm_per_rev);
 BLRemote remote(controller, motion);
@@ -77,10 +84,11 @@ State state = State::Boot;
 bool calibrated = false;
 float max_position = 0;
 float min_position = 0;
-float rod_length = 0;
+float real_rod_length = 0;
 
 long last_loop_millis = -1;
 int direction_error_counter = 0;
+long loop_count = 0;
 
 
 void setState(State s)
@@ -139,7 +147,7 @@ void setup()
 
   CalibrationZero_enter();
 
-  timer.every(10 * 1000, timed_loop);
+  timer.every(CONTROL_LOOP_MS * 1000, timed_loop);
 }
 
 
@@ -168,18 +176,22 @@ bool timed_loop(void *)
   checkSlowLoopTime();
 
 #ifdef DEV_PLOT
-  Serial.print(controller.getCurrentPosition());
-  Serial.print(" ");
-  Serial.print(controller.getTargetPosition());
-  Serial.print(" ");
-  Serial.print(controller.getCurrentSpeed());
-  Serial.print(" ");
-  Serial.print(controller.getTargetSpeed());
-  Serial.print(" ");
-  Serial.print(controller.getThrottleOutput());
-  Serial.println("");
+  if (loop_count % 10 == 0) {
+    Serial.print("pos_curr:");
+    Serial.print(controller.getCurrentPosition());
+    Serial.print(",pos_tar:");
+    Serial.print(controller.getTargetPosition());
+    Serial.print(",speed_cur:");
+    Serial.print(controller.getCurrentSpeed());
+    Serial.print(",speed_tar:");
+    Serial.print(controller.getTargetSpeed());
+    Serial.print(",th:");
+    Serial.print(controller.getThrottleOutput());
+    Serial.println("");
+  }
 #endif
 
+  loop_count += 1;
   return true;
 }
 
@@ -188,8 +200,8 @@ bool timed_loop(void *)
 void CalibrationZero_enter()
 {
   setState(State::CalibrationZero);
-  controller.setForce(CALIBRATION_FORCE);
-  controller.setSpeed(CALIBRATION_SPEED);
+  controller.setForce(CALIBRATION_FORCE_PERC);
+  controller.setSpeed(CALIBRATION_SPEED_CMS);
   controller.moveTo(-calibration_max_rev);
   Serial.println("CALIBRATION: begin");
 }
@@ -214,8 +226,8 @@ void CalibrationZero_update()
 void CalibrationMax_enter()
 {
   setState(State::CalibrationMax);
-  controller.setForce(CALIBRATION_FORCE);
-  controller.setSpeed(CALIBRATION_SPEED);
+  controller.setForce(CALIBRATION_FORCE_PERC);
+  controller.setSpeed(CALIBRATION_SPEED_CMS);
   controller.moveTo(calibration_max_rev);
 }
 
@@ -229,19 +241,24 @@ void CalibrationMax_update()
     const float end_travel = controller.getCurrentPosition();
     max_position = end_travel - margin_rev;
     min_position = margin_rev;
-    rod_length = end_travel * cm_per_rev;
+    real_rod_length = end_travel * cm_per_rev;
     motion.setPostionLimits(min_position, max_position);
 
+    float adjusted_rod_length = (max_position - min_position) * cm_per_rev;
     RemoteInfo *info = remote.getInfoRef();
-    info->max_speed = MAX_SPEED;
-    info->rod_lenght = (max_position - min_position) * cm_per_rev;
+    info->max_speed = MAX_SPEED_CMS;
+    info->rod_lenght = adjusted_rod_length;
     remote.notifyInfoUpdate();
 
-    if(rod_length > ROD_MIN_CM && rod_length < ROD_MAX_CM)
+    if(real_rod_length > ROD_MIN_CM && real_rod_length < ROD_MAX_CM)
     {
       Serial.println("CALIBRATION: Max Set");
-      Serial.print("Rod lenght: ");
-      Serial.print(rod_length);
+      Serial.print("real rod lenght: ");
+      Serial.print(real_rod_length);
+      Serial.println("cm");
+
+      Serial.print("adjusted rod lenght: ");
+      Serial.print(adjusted_rod_length);
       Serial.println("cm");
 
       Operative_enter();
@@ -322,7 +339,7 @@ void checkSlowLoopTime()
 {
   const long now = millis();
   const int delta = now - last_loop_millis;
-  if(last_loop_millis > 0 && now - last_loop_millis > SAFE_LOOP_MS)
+  if(last_loop_millis > 0 && now - last_loop_millis > WARN_SLOW_LOOP_MS)
   {
     Serial.print("SLOW LOOP: ");
     Serial.print(delta);
