@@ -21,6 +21,7 @@ protected:
 
   AS5600 &encoder;
   HBridge &motor;
+  bool inverted;
 
   PID position_pid, speed_pid;
 
@@ -40,9 +41,10 @@ protected:
   void travelEnd();
   
 public:
-  MotorController(AS5600 &encoder, HBridge &motor):
+  MotorController(AS5600 &encoder, HBridge &motor, bool inverted = false):
     encoder(encoder),
     motor(motor),
+    inverted(inverted),
     position_pid(&current_position, &target_speed, &target_position, 200.0, 0.0, 0.0, DIRECT),
     speed_pid(&current_speed, &throttle_output, &target_speed, .25, 0.0, 0.0, DIRECT)
   {};

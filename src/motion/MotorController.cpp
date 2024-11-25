@@ -16,7 +16,7 @@ void MotorController::begin()
   motor.begin();
 
   encoder.begin();  //  set direction pin.
-  encoder.setDirection(AS5600_CLOCK_WISE);  // default, just be explicit.
+  encoder.setDirection(inverted ? AS5600_COUNTERCLOCK_WISE : AS5600_CLOCK_WISE);  // default, just be explicit.
   encoder.setHysteresis(0);
   encoder.resetCumulativePosition();
 
@@ -31,7 +31,7 @@ void MotorController::begin()
 
 void MotorController::update()
 {
-  current_position = encoder.getCumulativePosition() * AS5600_RAW_TO_DEGREES / 360.0;
+  current_position = encoder.getCumulativePosition() * AS5600_RAW_TO_DEGREES / 360.0 * (inverted ? -1 : 1);
   current_speed = encoder.getAngularSpeed() / 360.0;
 
   position_pid.Compute();
@@ -160,7 +160,7 @@ void MotorController::updateMotor(float t)
   if (t > force) t = force;
   else if(t < -force) t = -force;
 
-  motor.setThrottle(t);
+  motor.setThrottle(t * (inverted ? -1 : 1));
 }
 
 void MotorController::travelStart()

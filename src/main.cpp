@@ -12,20 +12,21 @@
 // #include "remote/Config.h"
 
 /** >> uncomment to wait for serial */
-#define DEV_MODE
+// #define DEV_MODE
 
 /** >> uncomment to plot to serial */
 #define DEV_PLOT
 
 // =====> PIN CONFIG <=====
-#define PIN_IN1 3
-#define PIN_IN2 2
+#define PIN_IN1 2
+#define PIN_IN2 3
 
 constexpr float DRUM_RADIUS_CM     = 1.5;
 constexpr float ROD_MIN_CM         = 5.0;
 constexpr float ROD_MAX_CM         = 50;
 constexpr float ROD_END_MARGIN_CM  = 0.5;
 constexpr float MAX_SPEED_CMS      = 40.0;
+constexpr bool INVERT_POSITIVE_DIRECTION = true;
 
 constexpr float CALIBRATION_SPEED_CMS  = 1.0;
 constexpr float CALIBRATION_FORCE_PERC = 0.25;
@@ -42,8 +43,8 @@ constexpr float margin_rev = ROD_END_MARGIN_CM * rev_per_cm;
 
 
 AS5600 encoder;   //  use default Wire
-HBridge motor(PIN_IN1, PIN_IN2);
-MotorController controller(encoder, motor);
+HBridge motor(PIN_IN2, PIN_IN1);
+MotorController controller(encoder, motor, INVERT_POSITIVE_DIRECTION);
 Motion motion(controller, cm_per_rev);
 BLRemote remote(controller, motion);
 LVS lvs;
@@ -109,10 +110,6 @@ void setup()
 #endif
   Serial.println("\n\n**LIN Controller [v0.0]**\n");
 
-  // Motor controller check
-  controller.begin();
-  delay(1000);
-
   // Enecoder check
   encoder.begin();
   bool encoder_connected = encoder.isConnected();
@@ -129,6 +126,11 @@ void setup()
   if(encoder.magnetTooWeak())
     Serial.print(" [Too Weak] ");
   Serial.println();
+
+  delay(1000);
+
+  // Motor controller check
+  controller.begin();
   delay(1000);
 
   // configurator.begin();
